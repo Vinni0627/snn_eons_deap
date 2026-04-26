@@ -99,10 +99,12 @@ class GridEnvironment:
 
         # Default step penalty
         reward = -0.01
+        collision = False
 
         if self._out_of_bounds(new_pos) or new_pos in self.obstacle_positions:
             # Collision — agent stays, gets penalty
             reward = -0.5
+            collision = True
         else:
             # Valid move — apply shaping reward
             old_dist = self._manhattan(self.agent_pos, self.goal_pos)
@@ -141,6 +143,7 @@ class GridEnvironment:
             "goal_pos"     : self.goal_pos,
             "dist_to_goal" : dist_to_goal,
             "goal_reached" : goal_reached,
+            "collision"    : collision,
         }
         return sensors, reward, self.done, info
 

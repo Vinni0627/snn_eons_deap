@@ -4,7 +4,7 @@ deap_weight_optimizer.py
 DEAP-based inner-loop weight optimizer for a fixed network topology.
 
 Usage:
-    best_weights, best_fitness = optimize_weights(
+    best_weights, best_fitness, gen_history = optimize_weights(
         fitness_fn=fn,   # callable: list[float] -> float
         n_weights=42,    # number of edges in the topology
         pop_size=20,
@@ -12,8 +12,8 @@ Usage:
         seed=None,
     )
 
-The DEAP creator classes are registered once at module level to avoid the
-"class already registered" error when this function is called many times.
+gen_history is a list of length n_gen+1 (including generation 0) where each
+entry is the best fitness in the population at that generation.
 """
 
 import random
@@ -28,7 +28,7 @@ if not hasattr(creator, "Individual"):
 
 def optimize_weights(fitness_fn, n_weights, pop_size=20, n_gen=25, seed=None):
     """
-    Run DEAP eaSimple to find the best weight vector for a fixed topology.
+    Run DEAP GA to find the best weight vector for a fixed topology.
 
     Parameters
     ----------
@@ -47,9 +47,10 @@ def optimize_weights(fitness_fn, n_weights, pop_size=20, n_gen=25, seed=None):
     -------
     best_weights : list[float]
     best_fitness : float
+    gen_history  : list[float]  — best fitness at each generation (length n_gen+1)
     """
     if n_weights == 0:
-        return [], 0.0
+        return [], 0.0, [0.0] * (n_gen + 1)
 
     if seed is not None:
         random.seed(seed)
@@ -66,14 +67,35 @@ def optimize_weights(fitness_fn, n_weights, pop_size=20, n_gen=25, seed=None):
 
     pop = toolbox.population(n=pop_size)
 
-    # Evaluate initial population before handing to eaSimple
+    # Evaluate initial population
     fitnesses = list(map(toolbox.evaluate, pop))
     for ind, fit in zip(pop, fitnesses):
         ind.fitness.values = fit
 
-    algorithms.eaSimple(pop, toolbox,
-                        cxpb=0.5, mutpb=0.3, ngen=n_gen,
-                        verbose=False)
+    gen_history = [max(ind.fitness.values[0] for ind in pop)]
+
+    # Run generation by generation to track convergence
+    for _ in range(n_gen):
+        offspring = toolbox.select(pop, len(pop))
+        offspring = list(map(toolbox.clone, offspring))
+
+        for child1, child2 in zip(offspring[::2], offspring[1::2]):
+            if random.random() < 0.5:
+                toolbox.mate(child1, child2)
+                del child1.fitness.values
+                del child2.fitness.values
+
+        for mutant in offspring:
+            if random.random() < 0.3:
+                toolbox.mutate(mutant)
+                del mutant.fitness.values
+
+        invalid = [ind for ind in offspring if not ind.fitness.valid]
+        for ind, fit in zip(invalid, map(toolbox.evaluate, invalid)):
+            ind.fitness.values = fit
+
+        pop[:] = offspring
+        gen_history.append(max(ind.fitness.values[0] for ind in pop))
 
     best = tools.selBest(pop, 1)[0]
-    return list(best), best.fitness.values[0]
+    return list(best), best.fitness.values[0], gen_history
