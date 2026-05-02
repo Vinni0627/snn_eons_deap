@@ -57,7 +57,7 @@ CONFIG = {
     "n_eval_episodes"  : 5,
 
     # Experiment
-    "n_trials"         : 3,
+    "n_trials"         : 15,
 }
 
 N_INPUTS  = CONFIG["n_sensors"] + 2   # 10 total (8 directional + 2 goal)
@@ -261,7 +261,7 @@ def run_trial(dynamic, seed_offset, trial):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    SAVE_DIR = "results"
+    SAVE_DIR = "results_extended"
 
     conditions = [
         ("snn_static",  False),
