@@ -7,7 +7,7 @@ if [ $# -eq 0 ]; then
 fi
 
 INTERVAL=$1
-OUT_PATH="results_ablation/obj_${INTERVAL}"
+OUT_PATH="results_ablation/int_${INTERVAL}"
 
 echo "Starting experiment with ${INTERVAL} interval..."
 echo "Saving to: ${OUT_PATH}"
