@@ -12,4 +12,5 @@ OUT_PATH="results_ablation/obj_${OBJ_COUNT}"
 echo "Starting experiment with ${OBJ_COUNT} objects..."
 echo "Saving to: ${OUT_PATH}"
 
-python ../hybrid_experiment.py --obj "$OBJ_COUNT" --out_dir "$OUT_PATH" "$@"
+# Run from base directory (snn_eons_deap)
+python hybrid_experiment.py --obj "$OBJ_COUNT" --out_dir "$OUT_PATH" "$@"

@@ -12,4 +12,5 @@ OUT_PATH="results_ablation/obj_${INTERVAL}"
 echo "Starting experiment with ${INTERVAL} interval..."
 echo "Saving to: ${OUT_PATH}"
 
-python ../hybrid_experiment.py --int "$INTERVAL" --out_dir "$OUT_PATH" "$@"
+# Run from base directory (snn_eons_deap)
+python hybrid_experiment.py --int "$INTERVAL" --out_dir "$OUT_PATH" "$@"
