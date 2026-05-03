@@ -13,4 +13,4 @@ echo "Starting experiment with ${INTERVAL} interval..."
 echo "Saving to: ${OUT_PATH}"
 
 # Run from base directory (snn_eons_deap)
-python hybrid_experiment.py --int "$INTERVAL" --out_dir "$OUT_PATH" 
+python3 hybrid_experiment.py --int "$INTERVAL" --out_dir "$OUT_PATH" 
