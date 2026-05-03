@@ -9,10 +9,7 @@ Original reward structure:
 
 Goal logic:
   - dist == 0  → agent stepped EXACTLY onto goal cell
-  - dist == 1  → agent is ONE STEP AWAY (adjacent)
-  - BOTH trigger goal reward +10.0 and end the episode
-  - info["goal_reached"] = True in both cases
-  - This means being next to the goal counts as reaching it
+  - Triggers goal reward +10.0 and end the episode
 """
 
 import numpy as np
@@ -84,6 +81,10 @@ class GridEnvironment:
                     and pos != self.goal_pos
                     and pos not in self.obstacle_positions):
                 self.obstacle_positions.append(pos)
+
+                # Uncomment for robustness, but leaving it out for time
+                # if not self.contains_path(self.agent_pos, self.goal_pos):
+                #     self.obstacle_positions.pop()
             attempts += 1
 
         self._sync_grid()
@@ -115,8 +116,7 @@ class GridEnvironment:
         # --------------------------------------------------
         # Goal check:
         #   dist == 0 → exactly on goal cell
-        #   dist == 1 → one step away (adjacent)
-        #   Both count as goal reached → reward +10.0
+        #   Counts as goal reached → reward +10.0
         # --------------------------------------------------
         dist_to_goal = self._manhattan(self.agent_pos, self.goal_pos)
         goal_reached = False
@@ -133,6 +133,12 @@ class GridEnvironment:
         # Move obstacles if dynamic mode
         if self.dynamic and self.step_count % self.dynamic_interval == 0:
             self._move_obstacles()
+            
+            # Uncomment the following for robustness, but otherwise leaving it out for time
+            # while not self.contains_path(self.agent_pos, self.goal_pos):
+            #     self._move_obstacles()
+
+            self.move_goal()
 
         self._sync_grid()
         sensors = self._get_sensor_readings()
@@ -223,3 +229,41 @@ class GridEnvironment:
     @staticmethod
     def _manhattan(a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+
+    def contains_path(self, start, goal) -> bool:
+        queue = [start]
+        visited = {start}
+
+        while queue:
+            cur = queue.pop(0)
+            if cur == goal:
+                return True
+            
+            for row, col in list(self.ACTION_DELTAS.values())[:4]:
+                next_pos = (cur[0] + row, cur[1] + col)
+                if (not self._out_of_bounds(next_pos)
+                    and next_pos not in self.obstacle_positions
+                    and next_pos not in visited):
+                    visited.add(next_pos)
+                    queue.append(next_pos)
+
+        return False
+    
+
+    def move_goal(self):
+        goal = self.goal_pos
+        moves = list(self.ACTION_DELTAS.values())[:4]
+        random.shuffle(moves)
+        moves.append((0, 0))
+        
+        for i in range(len(moves)): 
+            direction = moves[i]
+            new_pos   = (goal[0] + direction[0], goal[1] + direction[1])
+            if (not self._out_of_bounds(new_pos)
+                    and new_pos not in self.obstacle_positions
+                    and new_pos != self.agent_pos):
+                self.goal_pos = new_pos
+                break
+
