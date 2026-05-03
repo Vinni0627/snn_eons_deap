@@ -31,6 +31,7 @@ Per trial:
 
 import os
 import sys
+import argparse
 import numpy as np
 
 # ---------------------------------------------------------------------------
@@ -51,12 +52,24 @@ from deap_weight_optimizer import optimize_weights
 # Configuration
 # ---------------------------------------------------------------------------
 
+
+# Command-line Arguments for Experiment Parameters and Files
+parser = argparse.ArgumentParser(prog="hybrid_experiment.py", description="Experiment Parameters")
+parser.add_argument("--grid", type=int, default=20, help="N by N grid")
+parser.add_argument("--obj", type=int, default=15, help="Number of obstacles")
+parser.add_argument("--int", type=int, default=5, help="Dynamic Interval")
+parser.add_argument("--trials", type=int, default=15, help="Number of trials")
+parser.add_argument("--out_dir", type=str, required=True, help="Results Local Directory Path")
+args = parser.parse_args()
+
+
+
 CONFIG = {
     # Environment (matches experiment.py)
-    "grid_size"        : (20, 20),
+    "grid_size"        : (args.grid, args.grid),
     "n_sensors"        : 8,
-    "n_obstacles"      : 15,
-    "dynamic_interval" : 5,
+    "n_obstacles"      : args.obj,
+    "dynamic_interval" : args.int,
     "max_steps"        : 33,
     "n_actions"        : 5,
 
@@ -76,7 +89,7 @@ CONFIG = {
     "n_behav_episodes" : 20,   # held-out episodes for behavioral stats
 
     # Experiment
-    "n_trials"         : 15,
+    "n_trials"         : args.trials,
 }
 
 N_INPUTS  = CONFIG["n_sensors"] + 2   # 10 total (8 directional + 2 goal)
@@ -416,12 +429,40 @@ def run_trial(dynamic, seed_offset, trial):
     return history, best_weights, best_topo, best_deap_hist, behav
 
 
+
+
+
+def run_cross_eval(save_dir, n_trials):
+    print(f"\n{'='*60}")
+    print("Running Cross-Environment Fitness Evaluation")
+    print(f"{'='*60}")
+
+    static_topos = np.load(os.path.join(save_dir, "hybrid_snn_static_best_topos.npy"), allow_pickle=True)
+    static_weights = np.load(os.path.join(save_dir, "hybrid_snn_static_best_weights.npy"), allow_pickle=True)
+    
+    dynamic_topos = np.load(os.path.join(save_dir, "hybrid_snn_dynamic_best_topos.npy"), allow_pickle=True)
+    dynamic_weights = np.load(os.path.join(save_dir, "hybrid_snn_dynamic_best_weights.npy"), allow_pickle=True) 
+
+    cross_results = {"static": [], "dynamic": []}
+    for trial in range(n_trials):
+        # Run static on dynamic environment
+        static = behavioral_eval(static_topos[trial], static_weights[trial], dynamic=True, seed_offset=88888+trial*1000)
+        cross_results["static"].append(static)
+
+        # Run dynamic on static
+        dynamic = behavioral_eval(dynamic_topos[trial], dynamic_weights[trial], dynamic=False, seed_offset=88888+trial*1000)
+        cross_results["dynamic"].append(dynamic)
+
+        print(f"Trial {trial+1}: S->D Success: {static['goal_success_rate']:.1%} | D->S Success: {dynamic['goal_success_rate']:.1%}")
+
+    np.save(os.path.join(save_dir, "hybrid_cross_eval_results.npy"), cross_results)
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    SAVE_DIR = "results_extended"
+    SAVE_DIR = args.out_dir
 
     conditions = [
         ("snn_static",  False),
@@ -435,5 +476,7 @@ if __name__ == "__main__":
             n_trials = CONFIG["n_trials"],
             save_dir = SAVE_DIR,
         )
+
+    run_cross_eval(save_dir=SAVE_DIR, n_trials=CONFIG["n_trials"])
 
     print("\n\nAll conditions complete!")
