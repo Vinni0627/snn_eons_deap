@@ -17,16 +17,23 @@ Run after hybrid_experiment.py has finished:
 """
 
 import os
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-RESULTS_DIR = "results_extended"
-FIGURES_DIR = "figures_extended"
+parser = argparse.ArgumentParser(prog="plot_hybrid_results.py", description="Plot Hybrid Results")
+parser.add_argument("--res_dir", type=str, default="results", help="path to results directory")
+parser.add_argument("--fig_dir", type=str, default="figures", help="path to figures directory")
+args = parser.parse_args()
+
+
+RESULTS_DIR = args.result_dir
+FIGURES_DIR = args.fig_dir
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 COLORS = {
-    "snn_static" : "#E07B54",
+    "snn_static" : "#5480E0",
     "snn_dynamic": "#B03A2E",
 }
 DISPLAY = {
