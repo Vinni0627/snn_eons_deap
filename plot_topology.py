@@ -29,8 +29,8 @@ import matplotlib.colors as mcolors
 import networkx as nx
 from scipy import stats as scipy_stats
 
-RESULTS_DIR = "results"
-FIGURES_DIR = "figures"
+RESULTS_DIR = "results_extended"
+FIGURES_DIR = "figures_extended"
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 # -------------------------------------------------------------------------

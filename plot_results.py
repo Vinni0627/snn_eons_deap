@@ -19,8 +19,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from scipy import stats
 
-RESULTS_DIR = "results"
-FIGURES_DIR = "figures"
+RESULTS_DIR = "results_extended"
+FIGURES_DIR = "figures_extended"
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 # ------------------------------------------------------------------
