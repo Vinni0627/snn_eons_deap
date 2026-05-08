@@ -28,7 +28,7 @@ parser.add_argument("--fig_dir", type=str, default="figures", help="path to figu
 args = parser.parse_args()
 
 
-RESULTS_DIR = args.result_dir
+RESULTS_DIR = args.res_dir
 FIGURES_DIR = args.fig_dir
 os.makedirs(FIGURES_DIR, exist_ok=True)
 

@@ -28,9 +28,16 @@ import matplotlib.patches as mpatches
 import matplotlib.colors as mcolors
 import networkx as nx
 from scipy import stats as scipy_stats
+import argparse
 
-RESULTS_DIR = "results_extended"
-FIGURES_DIR = "figures_extended"
+parser = argparse.ArgumentParser(prog="plot_hybrid_results.py", description="Plot Hybrid Results")
+parser.add_argument("--res_dir", type=str, default="results", help="path to results directory")
+parser.add_argument("--fig_dir", type=str, default="figures", help="path to figures directory")
+args = parser.parse_args()
+
+
+RESULTS_DIR = args.res_dir
+FIGURES_DIR = args.fig_dir
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 # -------------------------------------------------------------------------
